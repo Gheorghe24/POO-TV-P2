@@ -37,7 +37,7 @@ public final class Page {
 
     /**
      * @param jsonOutput Output to add Json Objects
-     * @param action from Input
+     * @param action     from Input
      */
     public void changePage(final ArrayNode jsonOutput, final Action action, final Input input) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -80,9 +80,9 @@ public final class Page {
                 if (this.getCurrentUser() != null && this.getName().equals("movies")) {
                     List<Movie> movies;
                     if (currentMovie != null) {
-                    movies = new ContextForFilter<>(new FilterCountry())
-                            .executeStrategy(input.getMovies(),
-                                    currentUser.getCredentials().getCountry());
+                        movies = new ContextForFilter<>(new FilterCountry())
+                                .executeStrategy(input.getMovies(),
+                                        currentUser.getCredentials().getCountry());
                     } else {
                         movies = new ContextForFilter<>(new FilterCountry())
                                 .executeStrategy(this.moviesList,
@@ -117,9 +117,9 @@ public final class Page {
     }
 
     /**
-     * @param jsonOutput Output to add Json Objects
-     * @param action from Input
-     * @param inputData Database/Input class from Test File
+     * @param jsonOutput  Output to add Json Objects
+     * @param action      from Input
+     * @param inputData   Database/Input class from Test File
      * @param credentials from Input for register operation
      */
     public void onPage(final ArrayNode jsonOutput, final Action action,
@@ -261,6 +261,50 @@ public final class Page {
 
             default -> {
             }
+        }
+    }
+
+    /**
+     * @param movie      to add in Database
+     * @param jsonOutput to write POJO
+     * @param inputData, actual database
+     */
+    public void addToDatabase(final Movie movie, final ArrayNode jsonOutput,
+                              final Input inputData) {
+        if (movieService.getMoviesByName(movie.getName(), inputData.getMovies()).isEmpty()) {
+            inputData.getMovies().add(movie);
+            //aici trebuie sa adaug in notifications la utilizatorii care au subscribe la genul
+            // filmului
+            // vor fi notificati cei carora nu le este interzis in tara
+//            Notification notification = new Notification(movie.getName(), "ADD");
+//            currentUser.getNotifications().add(notification);
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+        }
+    }
+
+    /**
+     * @param movie      to add in Database
+     * @param jsonOutput to write POJO
+     * @param inputData, actual database
+     */
+    public void deleteFromDatabase(final Movie movie, final ArrayNode jsonOutput,
+                                   final Input inputData) {
+        //TODO Logic for delete action
+    }
+
+    /**
+     * @param action     from Input
+     * @param jsonOutput to write POJO object
+     */
+    public void subscribe(final Action action, final ArrayNode jsonOutput) {
+        if (name.equals("see details")) {
+            // mai trebuie sa verific daca nu e abonat deja
+            // daca currentMovie are genul asta
+            //
+            currentUser.getSubscribedGenres().add(action.getSubscribedGenre());
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         }
     }
 

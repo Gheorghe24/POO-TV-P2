@@ -14,12 +14,11 @@ import services.UserService;
 @Getter
 @Setter
 public final class Platform {
+    private static Platform platform = null;
     private Input inputData;
     private ArrayNode output;
     private Page currentPage;
     private List<ICommand> commandList;
-
-    private static Platform platform = null;
 
     private Platform() {
     }
@@ -62,6 +61,13 @@ public final class Platform {
                         action, inputData));
                 case "on page" -> takeCommand(new OnPage(currentPage, output, action,
                         inputData, new Credentials(action.getCredentials())));
+//                case "back" -> ;
+                // asta e doar o incercare
+                //TODO
+                case "database" -> takeCommand(new DatabaseAction(currentPage, output,
+                        action, inputData));
+                case "subscribe" -> takeCommand(new SubscribeAction(currentPage, output, action,
+                        inputData));
                 default -> {
                 }
             }

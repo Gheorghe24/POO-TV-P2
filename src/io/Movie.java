@@ -15,7 +15,7 @@ import lombok.Setter;
 @Builder
 public final class Movie {
     private String name;
-    private Integer year;
+    private String year;
     private Integer duration;
     private ArrayList<String> genres = new ArrayList<>();
     private ArrayList<String> actors = new ArrayList<>();

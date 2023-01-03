@@ -1,6 +1,9 @@
 package io;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +29,10 @@ public final class User {
     @Builder.Default
     private ArrayList<Movie> likedMovies = new ArrayList<>();
     @Builder.Default
-    private ArrayList<Notification> notifications = new ArrayList<>();
+    private Queue<Notification> notifications = new LinkedList<>();
     @Builder.Default
     private ArrayList<Movie> ratedMovies = new ArrayList<>();
+    @Builder.Default
+    @JsonIgnore
+    private ArrayList<String> subscribedGenres = new ArrayList<>();
 }
