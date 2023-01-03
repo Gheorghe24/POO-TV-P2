@@ -28,7 +28,6 @@ import utils.Utils;
 public final class Page {
     private String name;
     private User currentUser;
-    private String startUserAction;
     private List<Movie> moviesList;
     private Movie currentMovie;
     private MovieService movieService;
@@ -37,11 +36,10 @@ public final class Page {
 
     /**
      * @param jsonOutput Output to add Json Objects
-     * @param action     from Input
      */
-    public void changePage(final ArrayNode jsonOutput, final Action action, final Input input) {
+    public void changePage(final ArrayNode jsonOutput, final String pageName, final Input input,
+                           final String movieNameForDetails) {
         ObjectMapper objectMapper = new ObjectMapper();
-        String pageName = action.getPage();
         switch (pageName) {
             case "register":
             case "login":
@@ -89,8 +87,7 @@ public final class Page {
                                         currentUser.getCredentials().getCountry());
                     }
                     List<Movie> foundMovie = new ContextForFilter<>(new FilterName())
-                            .executeStrategy(movies,
-                                    action.getMovie());
+                            .executeStrategy(movies, movieNameForDetails);
                     if (foundMovie.isEmpty()) {
                         outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                     } else {
@@ -127,72 +124,13 @@ public final class Page {
         ObjectMapper objectMapper = new ObjectMapper();
         String feature = action.getFeature();
         switch (feature) {
-            case "login" -> {
-                if (this.getCurrentUser() == null && this.getName().equals("login")) {
-                    User userFound = userService.checkForUserInData(inputData, credentials);
+            case "login" -> loginOnPage(jsonOutput, inputData, credentials, objectMapper);
 
-                    if (userFound != null) {
-                        this.setCurrentUser(userFound);
-                        outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
-                                this.moviesList);
-                    } else {
-                        outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                    }
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-                this.setName("homepage");
-            }
+            case "register" -> registerOnPage(jsonOutput, inputData, credentials, objectMapper);
 
-            case "register" -> {
-                if (this.getCurrentUser() == null && this.getName().equals(
-                        "register")) {
-                    var registeredNewUser = userService.registerNewUser(inputData, credentials);
-                    if (registeredNewUser != null) {
-                        this.setCurrentUser(registeredNewUser);
-                        outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
-                                this.moviesList);
-                    } else {
-                        outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                        this.setName("homepage");
-                    }
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                    this.setName("homepage");
-                }
-            }
+            case "search" -> searchOnPage(jsonOutput, action, inputData, objectMapper);
 
-            case "search" -> {
-                if (this.getName().equals("movies")) {
-                    this.moviesList = new ContextForFilter<>(new FilterCountry())
-                            .executeStrategy(inputData.getMovies(),
-                                    currentUser.getCredentials().getCountry());
-                    this.moviesList = new ContextForFilter<>(new FilterName())
-                            .executeStrategy(this.moviesList,
-                                    action.getStartsWith());
-                    outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
-                            this.moviesList);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-            }
-
-            case "filter" -> {
-                if (this.getName().equals("movies")) {
-                    this.moviesList = new ContextForFilter<>(new FilterCountry())
-                            .executeStrategy(inputData.getMovies(),
-                                    currentUser.getCredentials().getCountry());
-                    Sort sortField = action.getFilters().getSort();
-                    this.moviesList = movieService.sortInputMovies(sortField, this.moviesList);
-                    Contains containsField = action.getFilters().getContains();
-                    this.moviesList = movieService.filterInputMoviesByContains(containsField,
-                            moviesList);
-                    outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
-                            this.moviesList);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-            }
+            case "filter" -> filterOnPage(jsonOutput, action, inputData, objectMapper);
 
             case "buy tokens" -> {
                 if (this.getName().equals("upgrades")) {
@@ -259,9 +197,117 @@ public final class Page {
                 }
             }
 
+            case "subscribe" -> {
+                if (this.getName().equals("see details")) {
+                    // mai trebuie sa verific daca nu e abonat deja
+                    // daca currentMovie are genul asta
+                    //
+                    currentUser.getSubscribedGenres().add(action.getSubscribedGenre());
+                } else {
+                    outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+                }
+            }
+
             default -> {
             }
         }
+    }
+
+    /**
+     * @param jsonOutput  Output to add Json Objects
+     * @param action      from Input
+     * @param inputData   Database/Input class from Test File
+     * @param objectMapper for json
+     */
+    private void filterOnPage(final ArrayNode jsonOutput, final Action action,
+                              final Input inputData, final ObjectMapper objectMapper) {
+        if (this.getName().equals("movies")) {
+            this.moviesList = new ContextForFilter<>(new FilterCountry())
+                    .executeStrategy(inputData.getMovies(),
+                            currentUser.getCredentials().getCountry());
+            Sort sortField = action.getFilters().getSort();
+            this.moviesList = movieService.sortInputMovies(sortField, this.moviesList);
+            Contains containsField = action.getFilters().getContains();
+            this.moviesList = movieService.filterInputMoviesByContains(containsField,
+                    moviesList);
+            outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
+                    this.moviesList);
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+        }
+    }
+
+    /**
+     * @param jsonOutput  Output to add Json Objects
+     * @param action      from Input
+     * @param inputData   Database/Input class from Test File
+     * @param objectMapper for json
+     */
+    private void searchOnPage(final ArrayNode jsonOutput, final Action action,
+                              final Input inputData, final ObjectMapper objectMapper) {
+        if (this.getName().equals("movies")) {
+            this.moviesList = new ContextForFilter<>(new FilterCountry())
+                    .executeStrategy(inputData.getMovies(),
+                            currentUser.getCredentials().getCountry());
+            this.moviesList = new ContextForFilter<>(new FilterName())
+                    .executeStrategy(this.moviesList,
+                            action.getStartsWith());
+            outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
+                    this.moviesList);
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+        }
+    }
+
+    /**
+     * @param jsonOutput  Output to add Json Objects
+     * @param credentials      from Input
+     * @param inputData   Database/Input class from Test File
+     * @param objectMapper for json
+     */
+    private void registerOnPage(final ArrayNode jsonOutput, final Input inputData,
+                                final Credentials credentials,
+                                final ObjectMapper objectMapper) {
+        if (this.getCurrentUser() == null && this.getName().equals(
+                "register")) {
+            var registeredNewUser = userService.registerNewUser(inputData, credentials);
+            if (registeredNewUser != null) {
+                this.setCurrentUser(registeredNewUser);
+                outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
+                        this.moviesList);
+            } else {
+                outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+                this.setName("homepage");
+            }
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+            this.setName("homepage");
+        }
+    }
+
+    /**
+     * @param jsonOutput  Output to add Json Objects
+     * @param credentials      from Input
+     * @param inputData   Database/Input class from Test File
+     * @param objectMapper for json
+     */
+    private void loginOnPage(final ArrayNode jsonOutput, final Input inputData,
+                             final Credentials credentials,
+                             final ObjectMapper objectMapper) {
+        if (this.getCurrentUser() == null && this.getName().equals("login")) {
+            User userFound = userService.checkForUserInData(inputData, credentials);
+
+            if (userFound != null) {
+                this.setCurrentUser(userFound);
+                outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
+                        this.moviesList);
+            } else {
+                outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+            }
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+        }
+        this.setName("homepage");
     }
 
     /**
@@ -294,17 +340,17 @@ public final class Page {
     }
 
     /**
-     * @param action     from Input
-     * @param jsonOutput to write POJO object
+     * @param jsonOutput
+     * @param action
+     * @param input
      */
-    public void subscribe(final Action action, final ArrayNode jsonOutput) {
-        if (name.equals("see details")) {
-            // mai trebuie sa verific daca nu e abonat deja
-            // daca currentMovie are genul asta
-            //
-            currentUser.getSubscribedGenres().add(action.getSubscribedGenre());
-        } else {
+    public void back(final ArrayNode jsonOutput, final Action action,
+                     final Input input) {
+        if (this.getName().equals("register")
+                || this.getName().equals("login")) {
             outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+        } else {
+            changePage(jsonOutput, action.getPage(), input, action.getMovie());
         }
     }
 
@@ -314,6 +360,13 @@ public final class Page {
         this.setMoviesList(movies);
         this.setCurrentMovie(movie);
         this.setCurrentUser(user);
+        Platform.getInstance().getPageQueue().add(Page
+                .builder()
+                .name(pageName)
+                .moviesList(movies)
+                .currentMovie(movie)
+                .currentUser(user)
+                .build());
     }
 
 }

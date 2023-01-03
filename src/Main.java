@@ -7,6 +7,7 @@ import io.Input;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Main class where everything starts
@@ -27,6 +28,7 @@ public final class Main {
         platform.setInputData(input);
         platform.setOutput(arrayNode);
         platform.setCommandList(new ArrayList<>());
+        platform.setPageQueue(new LinkedList<>());
         platform.setCurrentPage(Page.builder().build());
         platform.prepareForNewEntry();
         platform.executeListOfActions();

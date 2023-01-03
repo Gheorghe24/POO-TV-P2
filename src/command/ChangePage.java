@@ -14,6 +14,6 @@ public final class ChangePage implements ICommand {
     private Input inputData;
     @Override
     public void executeCommand() {
-        currentPage.changePage(jsonOutput, action, inputData);
+        currentPage.changePage(jsonOutput, action.getPage(), inputData, action.getMovie());
     }
 }

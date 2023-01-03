@@ -5,6 +5,7 @@ import io.Credentials;
 import io.Input;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import lombok.Getter;
 import lombok.Setter;
 import services.MovieService;
@@ -19,6 +20,7 @@ public final class Platform {
     private ArrayNode output;
     private Page currentPage;
     private List<ICommand> commandList;
+    private Queue<Page> pageQueue;
 
     private Platform() {
     }
@@ -61,13 +63,11 @@ public final class Platform {
                         action, inputData));
                 case "on page" -> takeCommand(new OnPage(currentPage, output, action,
                         inputData, new Credentials(action.getCredentials())));
-//                case "back" -> ;
+                case "back" -> takeCommand(new BackAction(currentPage, output, inputData));
                 // asta e doar o incercare
                 //TODO
                 case "database" -> takeCommand(new DatabaseAction(currentPage, output,
                         action, inputData));
-                case "subscribe" -> takeCommand(new SubscribeAction(currentPage, output, action,
-                        inputData));
                 default -> {
                 }
             }
