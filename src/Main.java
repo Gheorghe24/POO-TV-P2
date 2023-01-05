@@ -1,13 +1,11 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import command.Page;
 import command.Platform;
 import io.Input;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Stack;
 
 /**
@@ -16,6 +14,7 @@ import java.util.Stack;
 public final class Main {
     private Main() {
     }
+
     /**
      * @param args Main method where action happens
      */

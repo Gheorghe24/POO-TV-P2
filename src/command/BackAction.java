@@ -21,8 +21,8 @@ public final class BackAction implements ICommand {
         }
         stack.pop();
         Page frontPage = stack.pop();
-        String movieName = frontPage.getCurrentMovie() != null ?
-                frontPage.getCurrentMovie().getName() : null;
+        String movieName = frontPage.getCurrentMovie() != null
+                ? frontPage.getCurrentMovie().getName() : null;
         if (frontPage.getName().equals("register")
                 || frontPage.getName().equals("login")) {
             new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());

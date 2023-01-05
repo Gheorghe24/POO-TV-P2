@@ -1,11 +1,12 @@
 package command;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.Credentials;
 import io.Input;
+import io.Notification;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Stack;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,6 +76,17 @@ public final class Platform {
         });
 
         placeCommands();
+        if (currentPage.getCurrentUser() != null
+                && currentPage.getCurrentUser().getCredentials().getAccountType()
+                .equals("premium")) {
+
+            if (currentPage.getCurrentUser().getLikedMovies().isEmpty()) {
+                Notification notification = new Notification("No recommendation", "Recommendation");
+                currentPage.getCurrentUser().getNotifications().add(notification);
+                new OutputService().addPOJOWithPopulatedOutput(output, currentPage,
+                        new ObjectMapper(), null);
+            }
+        }
     }
 
     /**

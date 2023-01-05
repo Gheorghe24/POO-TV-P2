@@ -153,10 +153,10 @@ public final class MovieService {
                     currentPage.getCurrentUser().getWatchedMovies()).get(0);
 
             int counterOfRatings = movie.getNumRatings();
+            movie.setRating((movie.getRating() * counterOfRatings + action.getRate())
+                    / (counterOfRatings + 1));
             if (getMoviesByName(movie.getName(),
                     currentPage.getCurrentUser().getRatedMovies()).isEmpty()) {
-                movie.setRating((movie.getRating() * counterOfRatings + action.getRate())
-                        / (counterOfRatings + 1));
                 movie.setNumRatings(movie.getNumRatings() + 1);
                 currentPage.getCurrentUser().getRatedMovies().add(movie);
             }
@@ -223,7 +223,8 @@ public final class MovieService {
      * if user respects the rules, we add the Movie to watched list
      */
     public void watchMovie(final ArrayNode jsonOutput, final Action action,
-                            final ObjectMapper objectMapper, final Page currentPage) {
+                            final ObjectMapper objectMapper,
+                           final Input inputData, final Page currentPage) {
         if (currentPage.getCurrentUser().getPurchasedMovies().isEmpty()) {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
         } else {
@@ -233,13 +234,18 @@ public final class MovieService {
             List<Movie> notFoundInWatchedMovies = getMoviesByName(movieName,
                     currentPage.getCurrentUser().getWatchedMovies());
 
-            if (availableFromPurchasedMovies.isEmpty()) {
+            if (availableFromPurchasedMovies.isEmpty()
+                    && !notFoundInWatchedMovies.isEmpty()) {
                 outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-            } else if (notFoundInWatchedMovies.isEmpty()) {
+            } else if (notFoundInWatchedMovies.isEmpty()
+                    && !availableFromPurchasedMovies.isEmpty()) {
                 currentPage.setCurrentMovie(availableFromPurchasedMovies.get(0));
                 currentPage.getCurrentUser().getWatchedMovies().add(
                         new Movie(currentPage.getCurrentMovie()));
-
+                outputService.addPOJOWithPopulatedOutput(jsonOutput, currentPage,
+                        objectMapper, new ArrayList<>(Collections.singleton(
+                                new Movie(currentPage.getCurrentMovie()))));
+            } else {
                 outputService.addPOJOWithPopulatedOutput(jsonOutput, currentPage,
                         objectMapper, new ArrayList<>(Collections.singleton(
                                 new Movie(currentPage.getCurrentMovie()))));

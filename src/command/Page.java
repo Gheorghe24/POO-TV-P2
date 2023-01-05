@@ -175,7 +175,7 @@ public final class Page {
 
             case "watch" -> {
                 if (this.getName().equals("see details")) {
-                    movieService.watchMovie(jsonOutput, action, objectMapper, this);
+                    movieService.watchMovie(jsonOutput, action, objectMapper, inputData, this);
                 } else {
                     outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                 }
@@ -215,9 +215,9 @@ public final class Page {
     }
 
     /**
-     * @param jsonOutput  Output to add Json Objects
-     * @param action      from Input
-     * @param inputData   Database/Input class from Test File
+     * @param jsonOutput   Output to add Json Objects
+     * @param action       from Input
+     * @param inputData    Database/Input class from Test File
      * @param objectMapper for json
      */
     private void filterOnPage(final ArrayNode jsonOutput, final Action action,
@@ -239,9 +239,9 @@ public final class Page {
     }
 
     /**
-     * @param jsonOutput  Output to add Json Objects
-     * @param action      from Input
-     * @param inputData   Database/Input class from Test File
+     * @param jsonOutput   Output to add Json Objects
+     * @param action       from Input
+     * @param inputData    Database/Input class from Test File
      * @param objectMapper for json
      */
     private void searchOnPage(final ArrayNode jsonOutput, final Action action,
@@ -261,9 +261,9 @@ public final class Page {
     }
 
     /**
-     * @param jsonOutput  Output to add Json Objects
-     * @param credentials      from Input
-     * @param inputData   Database/Input class from Test File
+     * @param jsonOutput   Output to add Json Objects
+     * @param credentials  from Input
+     * @param inputData    Database/Input class from Test File
      * @param objectMapper for json
      */
     private void registerOnPage(final ArrayNode jsonOutput, final Input inputData,
@@ -287,9 +287,9 @@ public final class Page {
     }
 
     /**
-     * @param jsonOutput  Output to add Json Objects
-     * @param credentials      from Input
-     * @param inputData   Database/Input class from Test File
+     * @param jsonOutput   Output to add Json Objects
+     * @param credentials  from Input
+     * @param inputData    Database/Input class from Test File
      * @param objectMapper for json
      */
     private void loginOnPage(final ArrayNode jsonOutput, final Input inputData,
@@ -331,27 +331,26 @@ public final class Page {
     }
 
     /**
-     * @param movie      to add in Database
+     * @param movieName  to add in Database
      * @param jsonOutput to write POJO
      * @param inputData, actual database
      */
-    public void deleteFromDatabase(final Movie movie, final ArrayNode jsonOutput,
+    public void deleteFromDatabase(final String movieName, final ArrayNode jsonOutput,
                                    final Input inputData) {
+        Movie movieToDelete =
+                !movieService.getMoviesByName(movieName, inputData.getMovies()).isEmpty()
+                        ? movieService.getMoviesByName(movieName, inputData.getMovies()).get(0)
+                        : null;
         //TODO Logic for delete action
-    }
-
-    /**
-     * @param jsonOutput
-     * @param action
-     * @param input
-     */
-    public void back(final ArrayNode jsonOutput, final Action action,
-                     final Input input) {
-        if (this.getName().equals("register")
-                || this.getName().equals("login")) {
-            outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+        if (movieToDelete != null) {
+            inputData.getMovies().remove(movieToDelete);
+            //aici trebuie sa adaug in notifications la utilizatorii care au subscribe la genul
+            // filmului
+            // vor fi notificati cei carora nu le este interzis in tara
+//            Notification notification = new Notification(movie.getName(), "ADD");
+//            currentUser.getNotifications().add(notification);
         } else {
-            changePage(jsonOutput, action.getPage(), input, action.getMovie());
+            outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         }
     }
 

@@ -18,7 +18,7 @@ public final class DatabaseAction implements ICommand {
             currentPage.addToDatabase(action.getAddedMovie(),
                     jsonOutput, inputData);
         } else {
-            currentPage.deleteFromDatabase(action.getAddedMovie(),
+            currentPage.deleteFromDatabase(action.getDeletedMovie(),
                     jsonOutput, inputData);
         }
     }
