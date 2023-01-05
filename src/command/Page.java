@@ -54,6 +54,7 @@ public final class Page {
             case "logout":
                 if (this.getCurrentUser() != null) {
                     populateCurrentPage("homepage", new ArrayList<>(), null, null);
+                    Platform.getInstance().getPageStack().clear();
                 } else {
                     outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                 }
@@ -102,7 +103,7 @@ public final class Page {
 
             case "upgrades":
                 if (this.getCurrentUser() != null) {
-                    populateCurrentPage(pageName, null, null, currentUser);
+                    populateCurrentPage(pageName, new ArrayList<>(), null, currentUser);
                 } else {
                     outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                 }
@@ -360,7 +361,7 @@ public final class Page {
         this.setMoviesList(movies);
         this.setCurrentMovie(movie);
         this.setCurrentUser(user);
-        Platform.getInstance().getPageQueue().add(Page
+        Platform.getInstance().getPageStack().push(Page
                 .builder()
                 .name(pageName)
                 .moviesList(movies)

@@ -6,6 +6,7 @@ import io.Input;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Stack;
 import lombok.Getter;
 import lombok.Setter;
 import services.MovieService;
@@ -20,7 +21,7 @@ public final class Platform {
     private ArrayNode output;
     private Page currentPage;
     private List<ICommand> commandList;
-    private Queue<Page> pageQueue;
+    private Stack<Page> pageStack;
 
     private Platform() {
     }

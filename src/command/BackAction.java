@@ -14,15 +14,21 @@ public final class BackAction implements ICommand {
 
     @Override
     public void executeCommand() {
-        Page frontPage = Platform.getInstance().getPageQueue().poll();
-        if (frontPage != null) {
-            if (frontPage.getName().equals("register")
-                    || frontPage.getName().equals("login") || frontPage.getCurrentMovie() == null) {
-                new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
-            } else {
-                currentPage.changePage(jsonOutput, frontPage.getName(), inputData,
-                        frontPage.getCurrentMovie().getName());
-            }
+        var stack = Platform.getInstance().getPageStack();
+        if (stack.isEmpty()) {
+            new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+            return;
+        }
+        stack.pop();
+        Page frontPage = stack.pop();
+        String movieName = frontPage.getCurrentMovie() != null ?
+                frontPage.getCurrentMovie().getName() : null;
+        if (frontPage.getName().equals("register")
+                || frontPage.getName().equals("login")) {
+            new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+        } else {
+            currentPage.changePage(jsonOutput, frontPage.getName(), inputData,
+                    movieName);
         }
     }
 }

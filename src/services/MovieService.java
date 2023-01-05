@@ -153,11 +153,15 @@ public final class MovieService {
                     currentPage.getCurrentUser().getWatchedMovies()).get(0);
 
             int counterOfRatings = movie.getNumRatings();
-            movie.setRating((movie.getRating() * counterOfRatings + action.getRate())
-                    / (counterOfRatings + 1));
-            movie.setNumRatings(movie.getNumRatings() + 1);
+            if (getMoviesByName(movie.getName(),
+                    currentPage.getCurrentUser().getRatedMovies()).isEmpty()) {
+                movie.setRating((movie.getRating() * counterOfRatings + action.getRate())
+                        / (counterOfRatings + 1));
+                movie.setNumRatings(movie.getNumRatings() + 1);
+                currentPage.getCurrentUser().getRatedMovies().add(movie);
+            }
             updateMovieInAllObjects(movie, input);
-            currentPage.getCurrentUser().getRatedMovies().add(movie);
+
 
             outputService.addPOJOWithPopulatedOutput(jsonOutput, currentPage,
                     objectMapper, new ArrayList<>(Collections.singleton(
@@ -186,7 +190,8 @@ public final class MovieService {
 
         if (!availableMovies.isEmpty()) {
             var firstAvailableMovie = availableMovies.get(0);
-            if (!currentPage.getCurrentUser().getPurchasedMovies().contains(firstAvailableMovie)) {
+            if (getMoviesByName(firstAvailableMovie.getName(),
+                    currentPage.getCurrentUser().getPurchasedMovies()).isEmpty()) {
                 if (currentPage.getCurrentUser().getCredentials().getAccountType().equals("premium")
                         && currentPage.getCurrentUser().getNumFreePremiumMovies() > 0) {
                     currentPage.getCurrentUser().setNumFreePremiumMovies(

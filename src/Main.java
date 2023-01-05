@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Stack;
 
 /**
  * Main class where everything starts
@@ -28,8 +29,7 @@ public final class Main {
         platform.setInputData(input);
         platform.setOutput(arrayNode);
         platform.setCommandList(new ArrayList<>());
-        platform.setPageQueue(new LinkedList<>());
-        platform.setCurrentPage(Page.builder().build());
+        platform.setPageStack(new Stack<>());
         platform.prepareForNewEntry();
         platform.executeListOfActions();
         objectWriter.writeValue(new File(args[1]), arrayNode);
