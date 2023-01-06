@@ -54,7 +54,6 @@ public final class Page {
             case "logout":
                 if (this.getCurrentUser() != null) {
                     populateCurrentPage("homepage", new ArrayList<>(), null, null);
-                    Platform.getInstance().getPageStack().clear();
                 } else {
                     outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                 }
@@ -78,7 +77,7 @@ public final class Page {
             case "see details":
                 if (this.getCurrentUser() != null && this.getName().equals("movies")) {
                     List<Movie> movies;
-                    if (currentMovie != null) {
+                    if (currentMovie == null) {
                         movies = new ContextForFilter<>(new FilterCountry())
                                 .executeStrategy(input.getMovies(),
                                         currentUser.getCredentials().getCountry());
@@ -360,6 +359,9 @@ public final class Page {
         this.setMoviesList(movies);
         this.setCurrentMovie(movie);
         this.setCurrentUser(user);
+        if (pageName.equals("homepage")) {
+            Platform.getInstance().getPageStack().clear();
+        }
         Platform.getInstance().getPageStack().push(Page
                 .builder()
                 .name(pageName)

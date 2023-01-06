@@ -19,13 +19,18 @@ public final class BackAction implements ICommand {
             new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
             return;
         }
-        stack.pop();
+        if (stack.pop().getName().equals("homepage")) {
+            currentPage.setName("homepage");
+            return;
+        }
         Page frontPage = stack.pop();
         String movieName = frontPage.getCurrentMovie() != null
                 ? frontPage.getCurrentMovie().getName() : null;
         if (frontPage.getName().equals("register")
                 || frontPage.getName().equals("login")) {
             new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
+        } else if (frontPage.getName().equals("homepage")) {
+            currentPage.setName("homepage");
         } else {
             currentPage.changePage(jsonOutput, frontPage.getName(), inputData,
                     movieName);

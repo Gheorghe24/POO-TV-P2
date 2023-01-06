@@ -76,6 +76,15 @@ public final class Platform {
         });
 
         placeCommands();
+        writeRecommendation();
+    }
+
+    /**
+     * firstly verify if a user is logged in
+     * then verify if is a premium user
+     * verify if user has liked movies
+     */
+    private void writeRecommendation() {
         if (currentPage.getCurrentUser() != null
                 && currentPage.getCurrentUser().getCredentials().getAccountType()
                 .equals("premium")) {
@@ -101,5 +110,8 @@ public final class Platform {
                 .outputService(new OutputService())
                 .userService(new UserService())
                 .build();
+        Platform.getInstance().getPageStack().push(Page.builder()
+                .name("homepage")
+                .build());
     }
 }
