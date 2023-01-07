@@ -1,6 +1,7 @@
 package strategy.filter;
 
 import io.Movie;
+import io.User;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,10 +12,14 @@ public final class FilterActor implements IFilterStrategy<ArrayList<String>> {
         return movies
                 .stream()
                 .filter(movie
-                        -> list.stream()
-                        .allMatch(elem ->
-                                movie.getActors()
-                                        .contains(elem)))
+                        -> movie.getActors().containsAll(list))
                         .collect(Collectors.toList());
     }
+
+    @Override
+    public List<User> filterUsers(final List<User> users, final ArrayList<String> field) {
+        return null;
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package strategy.filter;
 
 import io.Movie;
+import io.User;
 import java.util.List;
 
 /**
@@ -13,4 +14,11 @@ public interface IFilterStrategy<T> {
      * @return filtered list
      */
     List<Movie> filterMovies(List<Movie> movies, T field);
+
+    /**
+     * @param users to filter
+     * @param field for filter
+     * @return filtered list
+     */
+    List<User> filterUsers(List<User> users, T field);
 }

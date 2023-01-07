@@ -6,14 +6,12 @@ import io.Credentials;
 import io.Input;
 import io.Movie;
 import io.Notification;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import lombok.Getter;
 import lombok.Setter;
 import services.MovieService;
 import services.OutputService;
-import services.UserService;
 import strategy.filter.ContextForFilter;
 import strategy.filter.FilterCountry;
 import strategy.sort.ContextForSort;
@@ -71,10 +69,7 @@ public final class Platform {
                 case "on page" -> takeCommand(new OnPage(currentPage, output, action,
                         inputData, new Credentials(action.getCredentials())));
                 case "back" -> takeCommand(new BackAction(currentPage, output, inputData));
-                // asta e doar o incercare
-                //TODO
-                case "database" -> takeCommand(new DatabaseAction(currentPage, output,
-                        action, inputData));
+                case "database" -> takeCommand(new DatabaseAction(output, action, inputData));
                 default -> {
                 }
             }
@@ -99,14 +94,15 @@ public final class Platform {
             } else {
                 List<Movie> recommendationList = new ContextForSort<>(new SortLikes())
                         .executeStrategy(new ContextForFilter<>(new FilterCountry())
-                                        .executeStrategy(inputData.getMovies(),
+                                        .executeMoviesStrategy(inputData.getMovies(),
                                                 currentPage.getCurrentUser()
                                                         .getCredentials().getCountry()),
                                 "decreasing");
                 recommendationList =
                         recommendationList.stream().filter(movie -> new MovieService().
-                                getMoviesByName(movie.getName(),
-                                        currentPage.getCurrentUser().getWatchedMovies()).isEmpty())
+                                        getMoviesByName(movie.getName(),
+                                                currentPage.getCurrentUser().getWatchedMovies())
+                                        .isEmpty())
                                 .toList();
                 notification = new Notification(recommendationList.get(0).getName(),
                         "Recommendation");
@@ -122,12 +118,7 @@ public final class Platform {
      */
     public void prepareForNewEntry() {
         currentPage = Page.builder()
-                .currentUser(null)
                 .name("homepage")
-                .moviesList(new ArrayList<>())
-                .movieService(new MovieService())
-                .outputService(new OutputService())
-                .userService(new UserService())
                 .build();
         Platform.getInstance().getPageStack().push(Page.builder()
                 .name("homepage")

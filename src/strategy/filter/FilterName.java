@@ -1,20 +1,22 @@
 package strategy.filter;
 
 import io.Movie;
-import java.util.ArrayList;
+import io.User;
 import java.util.List;
 
 public final class FilterName implements IFilterStrategy<String> {
     @Override
     public List<Movie> filterMovies(final List<Movie> movies, final String name) {
-        if (name == null) {
-            System.out.println("name is null for some reason");
-            return new ArrayList<>();
-        }
-        return  movies
+        return movies
                 .stream()
                 .filter(movie
                         -> movie.getName().startsWith(name))
                 .toList();
     }
+
+    @Override
+    public List<User> filterUsers(final List<User> users, final String field) {
+        return null;
+    }
+
 }

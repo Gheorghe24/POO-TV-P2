@@ -1,6 +1,7 @@
 package strategy.filter;
 
 import io.Movie;
+import io.User;
 import java.util.List;
 
 public final class FilterCountry implements IFilterStrategy<String> {
@@ -14,4 +15,11 @@ public final class FilterCountry implements IFilterStrategy<String> {
                         .contains(country))
                 .toList();
     }
+
+    @Override
+    public List<User> filterUsers(final List<User> users, final String field) {
+        return null;
+    }
+
+
 }

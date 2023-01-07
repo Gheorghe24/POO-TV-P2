@@ -55,7 +55,7 @@ public final class MovieService {
      */
     public List<Movie> getMoviesByName(final String fieldFilter, final List<Movie> testedList) {
         return new ContextForFilter<>(new FilterName())
-                .executeStrategy(testedList,
+                .executeMoviesStrategy(testedList,
                         fieldFilter);
     }
 
@@ -70,11 +70,11 @@ public final class MovieService {
         if (containsField != null) {
             if (containsField.getActors() != null) {
                 filteredList = new ContextForFilter<>(new FilterActor())
-                        .executeStrategy(moviesList, containsField.getActors());
+                        .executeMoviesStrategy(moviesList, containsField.getActors());
             }
             if (containsField.getGenre() != null) {
                 filteredList = new ContextForFilter<>(new FilterGenre())
-                        .executeStrategy(filteredList, containsField.getGenre());
+                        .executeMoviesStrategy(filteredList, containsField.getGenre());
             }
         }
         return filteredList;

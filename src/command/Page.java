@@ -7,7 +7,6 @@ import io.Contains;
 import io.Credentials;
 import io.Input;
 import io.Movie;
-import io.Notification;
 import io.Sort;
 import io.User;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import services.DatabaseService;
 import services.MovieService;
 import services.OutputService;
 import services.UserService;
@@ -29,11 +29,17 @@ import utils.Utils;
 public final class Page {
     private String name;
     private User currentUser;
-    private List<Movie> moviesList;
+    @Builder.Default
+    private List<Movie> moviesList = new ArrayList<>();
     private Movie currentMovie;
-    private MovieService movieService;
-    private OutputService outputService;
-    private UserService userService;
+    @Builder.Default
+    private MovieService movieService = new MovieService();
+    @Builder.Default
+    private OutputService outputService = new OutputService();
+    @Builder.Default
+    private UserService userService = new UserService();
+    @Builder.Default
+    private DatabaseService databaseService = new DatabaseService();
 
     /**
      * @param jsonOutput Output to add Json Objects
@@ -64,7 +70,7 @@ public final class Page {
                 if (this.getCurrentUser() != null) {
                     populateCurrentPage(pageName,
                             new ContextForFilter<>(new FilterCountry())
-                                    .executeStrategy(input.getMovies(),
+                                    .executeMoviesStrategy(input.getMovies(),
                                             currentUser.getCredentials().getCountry()),
                             null,
                             currentUser);
@@ -80,7 +86,7 @@ public final class Page {
                     List<Movie> moviesByName = new MovieService()
                             .getMoviesByName(movieNameForDetails, this.moviesList);
                     List<Movie> foundMovie = new ContextForFilter<>(new FilterName())
-                            .executeStrategy(moviesByName, movieNameForDetails);
+                            .executeMoviesStrategy(moviesByName, movieNameForDetails);
                     if (foundMovie.isEmpty()) {
                         outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                     } else {
@@ -218,7 +224,7 @@ public final class Page {
                               final Input inputData, final ObjectMapper objectMapper) {
         if (this.getName().equals("movies")) {
             this.moviesList = new ContextForFilter<>(new FilterCountry())
-                    .executeStrategy(inputData.getMovies(),
+                    .executeMoviesStrategy(inputData.getMovies(),
                             currentUser.getCredentials().getCountry());
             Sort sortField = action.getFilters().getSort();
             this.moviesList = movieService.sortInputMovies(sortField, this.moviesList);
@@ -242,10 +248,10 @@ public final class Page {
                               final Input inputData, final ObjectMapper objectMapper) {
         if (this.getName().equals("movies")) {
             this.moviesList = new ContextForFilter<>(new FilterCountry())
-                    .executeStrategy(inputData.getMovies(),
+                    .executeMoviesStrategy(inputData.getMovies(),
                             currentUser.getCredentials().getCountry());
             this.moviesList = new ContextForFilter<>(new FilterName())
-                    .executeStrategy(this.moviesList,
+                    .executeMoviesStrategy(this.moviesList,
                             action.getStartsWith());
             outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
                     this.moviesList);
@@ -303,78 +309,6 @@ public final class Page {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
         }
         this.setName("homepage");
-    }
-
-    /**
-     * @param movie      to add in Database
-     * @param jsonOutput to write POJO
-     * @param inputData, actual database
-     */
-    public void addToDatabase(final Movie movie, final ArrayNode jsonOutput,
-                              final Input inputData) {
-        if (movieService.getMoviesByName(movie.getName(), inputData.getMovies()).isEmpty()) {
-            inputData.getMovies().add(movie);
-            List<User> users = inputData.getUsers().stream().filter(user ->
-                            user.getSubscribedGenres().stream()
-                                    .anyMatch(movie.getGenres()::contains))
-                    .toList();
-
-            List<User> availableUsers = users.stream().filter(user ->
-                            !movie.getCountriesBanned()
-                                    .contains(user.getCredentials().getCountry()))
-                    .toList();
-            Notification notification = new Notification(movie.getName(), "ADD");
-            availableUsers.forEach(user -> user.getNotifications().add(notification));
-        } else {
-            outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
-        }
-    }
-
-    /**
-     * @param movieName  to add in Database
-     * @param jsonOutput to write POJO
-     * @param inputData, actual database
-     */
-    public void deleteFromDatabase(final String movieName, final ArrayNode jsonOutput,
-                                   final Input inputData) {
-        Movie movieToDelete =
-                !movieService.getMoviesByName(movieName, inputData.getMovies()).isEmpty()
-                        ? movieService.getMoviesByName(movieName, inputData.getMovies()).get(0)
-                        : null;
-        //TODO Logic for delete action
-        if (movieToDelete != null) {
-            inputData.getMovies().remove(movieToDelete);
-            //aici trebuie sa adaug in notifications la utilizatorii care au subscribe la genul
-            // filmului
-            // vor fi notificati cei carora nu le este interzis in tara
-//            Notification notification = new Notification(movie.getName(), "ADD");
-//            currentUser.getNotifications().add(notification);
-            List<User> users = inputData.getUsers().stream().filter(user ->
-                            user.getSubscribedGenres().stream()
-                                    .anyMatch(movieToDelete.getGenres()::contains))
-                    .toList();
-            List<User> availableUsers = users.stream().filter(user ->
-                            !movieToDelete.getCountriesBanned()
-                                    .contains(user.getCredentials().getCountry()))
-                    .toList();
-            List<User> premiumUsers =
-                    availableUsers.stream().filter(user ->
-                                    user.getCredentials().getAccountType().equals("premium"))
-                            .toList();
-            List<User> standardUsers =
-                    availableUsers.stream().filter(user ->
-                                    user.getCredentials().getAccountType().equals("standard"))
-                            .toList();
-            premiumUsers.forEach(user ->
-                    user.setNumFreePremiumMovies(user.getNumFreePremiumMovies() + 1));
-            standardUsers.forEach(user ->
-                    user.setTokensCount(user.getTokensCount() + 2));
-            Notification notification = new Notification(movieToDelete.getName(), "DELETE");
-            availableUsers.forEach(user ->
-                    user.getNotifications().add(notification));
-        } else {
-            outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
-        }
     }
 
     private void populateCurrentPage(final String pageName, final List<Movie> movies,

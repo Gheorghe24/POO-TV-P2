@@ -16,8 +16,8 @@ import out.Output;
 @NoArgsConstructor
 public class OutputService {
     /**
-     * @param jsonOutput jsonObject
-     * @param currentPage
+     * @param jsonOutput jsonObject to write
+     * @param currentPage to extract data
      * @param objectMapper for writing to JsonObject
      * @param movies to add
      */
@@ -34,8 +34,8 @@ public class OutputService {
     }
 
     /**
-     * @param jsonOutput
-     * @param objectMapper
+     * @param jsonOutput jsonObject to write
+     * @param objectMapper for writing to JsonObject
      */
     public void addErrorPOJOToArrayNode(final ArrayNode jsonOutput,
                                          final ObjectMapper objectMapper) {

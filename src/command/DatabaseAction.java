@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.Action;
 import io.Input;
 import lombok.AllArgsConstructor;
+import services.DatabaseService;
 
 @AllArgsConstructor
 public final class DatabaseAction implements ICommand {
-    private Page currentPage;
     private ArrayNode jsonOutput;
     private Action action;
     private Input inputData;
@@ -15,10 +15,10 @@ public final class DatabaseAction implements ICommand {
     @Override
     public void executeCommand() {
         if (action.getFeature().equals("add")) {
-            currentPage.addToDatabase(action.getAddedMovie(),
+            new DatabaseService().addToDatabase(action.getAddedMovie(),
                     jsonOutput, inputData);
         } else {
-            currentPage.deleteFromDatabase(action.getDeletedMovie(),
+            new DatabaseService().deleteFromDatabase(action.getDeletedMovie(),
                     jsonOutput, inputData);
         }
     }
