@@ -103,6 +103,11 @@ public final class Platform {
                                                 currentPage.getCurrentUser()
                                                         .getCredentials().getCountry()),
                                 "decreasing");
+                recommendationList =
+                        recommendationList.stream().filter(movie -> new MovieService().
+                                getMoviesByName(movie.getName(),
+                                        currentPage.getCurrentUser().getWatchedMovies()).isEmpty())
+                                .toList();
                 notification = new Notification(recommendationList.get(0).getName(),
                         "Recommendation");
             }

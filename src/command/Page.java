@@ -77,18 +77,9 @@ public final class Page {
 
             case "see details":
                 if (this.getCurrentUser() != null && this.getName().equals("movies")) {
-                    List<Movie> movies;
-                    if (currentMovie == null) {
-                        movies = new ContextForFilter<>(new FilterCountry())
-                                .executeStrategy(input.getMovies(),
-                                        currentUser.getCredentials().getCountry());
-                    } else {
-                        movies = new ContextForFilter<>(new FilterCountry())
-                                .executeStrategy(this.moviesList,
-                                        currentUser.getCredentials().getCountry());
-                    }
+                    List<Movie> moviesByName = new MovieService().getMoviesByName(movieNameForDetails, this.moviesList);
                     List<Movie> foundMovie = new ContextForFilter<>(new FilterName())
-                            .executeStrategy(movies, movieNameForDetails);
+                            .executeStrategy(moviesByName, movieNameForDetails);
                     if (foundMovie.isEmpty()) {
                         outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                     } else {
