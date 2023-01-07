@@ -1087,7 +1087,13 @@
       "numRatings" : 0
     } ],
     "likedMovies" : [ ],
-    "notifications" : [ ],
+    "notifications" : [ {
+      "movieName" : "The Shawshank Redemption",
+      "message" : "ADD"
+    }, {
+      "movieName" : "Pulp Fictiom",
+      "message" : "ADD"
+    } ],
     "ratedMovies" : [ ]
   }
 } ]

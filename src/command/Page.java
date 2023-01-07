@@ -7,6 +7,7 @@ import io.Contains;
 import io.Credentials;
 import io.Input;
 import io.Movie;
+import io.Notification;
 import io.Sort;
 import io.User;
 import java.util.ArrayList;
@@ -198,7 +199,9 @@ public final class Page {
             }
 
             case "subscribe" -> {
-                if (this.getName().equals("see details")) {
+                if (this.getName().equals("see details")
+                        && !currentUser.getSubscribedGenres().contains(action.getSubscribedGenre())
+                        && currentMovie.getGenres().contains(action.getSubscribedGenre())) {
                     // mai trebuie sa verific daca nu e abonat deja
                     // daca currentMovie are genul asta
                     //
@@ -319,11 +322,14 @@ public final class Page {
                               final Input inputData) {
         if (movieService.getMoviesByName(movie.getName(), inputData.getMovies()).isEmpty()) {
             inputData.getMovies().add(movie);
-            //aici trebuie sa adaug in notifications la utilizatorii care au subscribe la genul
-            // filmului
-            // vor fi notificati cei carora nu le este interzis in tara
-//            Notification notification = new Notification(movie.getName(), "ADD");
-//            currentUser.getNotifications().add(notification);
+            List<User> users = inputData.getUsers().stream().filter(user ->
+                    user.getSubscribedGenres().stream().anyMatch(movie.getGenres()::contains))
+                    .toList();
+            List<User> availableUsers = users.stream().filter(user ->
+                    !movie.getCountriesBanned().contains(user.getCredentials().getCountry()))
+                    .toList();
+            Notification notification = new Notification(movie.getName(), "ADD");
+            availableUsers.forEach(user -> user.getNotifications().add(notification));
         } else {
             outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         }

@@ -234,11 +234,9 @@ public final class MovieService {
             List<Movie> notFoundInWatchedMovies = getMoviesByName(movieName,
                     currentPage.getCurrentUser().getWatchedMovies());
 
-            if (availableFromPurchasedMovies.isEmpty()
-                    && !notFoundInWatchedMovies.isEmpty()) {
+            if (availableFromPurchasedMovies.isEmpty()) {
                 outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-            } else if (notFoundInWatchedMovies.isEmpty()
-                    && !availableFromPurchasedMovies.isEmpty()) {
+            } else if (notFoundInWatchedMovies.isEmpty()) {
                 currentPage.setCurrentMovie(availableFromPurchasedMovies.get(0));
                 currentPage.getCurrentUser().getWatchedMovies().add(
                         new Movie(currentPage.getCurrentMovie()));
@@ -266,7 +264,8 @@ public final class MovieService {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
             return;
         }
-        if (!getMoviesByName(action.getMovie(),
+        String movieName = extractMovieName(action, currentPage.getCurrentMovie());
+        if (!getMoviesByName(movieName,
                 currentPage.getCurrentUser().getWatchedMovies()).isEmpty()) {
             Movie movie =
                     getMoviesByName(extractMovieName(action,

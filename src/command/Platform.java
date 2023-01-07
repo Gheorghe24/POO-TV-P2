@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.Credentials;
 import io.Input;
+import io.Movie;
 import io.Notification;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,10 @@ import lombok.Setter;
 import services.MovieService;
 import services.OutputService;
 import services.UserService;
+import strategy.filter.ContextForFilter;
+import strategy.filter.FilterCountry;
+import strategy.sort.ContextForSort;
+import strategy.sort.SortLikes;
 
 @Getter
 @Setter
@@ -88,13 +93,22 @@ public final class Platform {
         if (currentPage.getCurrentUser() != null
                 && currentPage.getCurrentUser().getCredentials().getAccountType()
                 .equals("premium")) {
-
+            Notification notification;
             if (currentPage.getCurrentUser().getLikedMovies().isEmpty()) {
-                Notification notification = new Notification("No recommendation", "Recommendation");
-                currentPage.getCurrentUser().getNotifications().add(notification);
-                new OutputService().addPOJOWithPopulatedOutput(output, currentPage,
-                        new ObjectMapper(), null);
+                notification = new Notification("No recommendation", "Recommendation");
+            } else {
+                List<Movie> recommendationList = new ContextForSort<>(new SortLikes())
+                        .executeStrategy(new ContextForFilter<>(new FilterCountry())
+                                        .executeStrategy(inputData.getMovies(),
+                                                currentPage.getCurrentUser()
+                                                        .getCredentials().getCountry()),
+                                "increasing");
+                notification = new Notification(recommendationList.get(0).getName(),
+                        "Recommendation");
             }
+            currentPage.getCurrentUser().getNotifications().add(notification);
+            new OutputService().addPOJOWithPopulatedOutput(output, currentPage,
+                    new ObjectMapper(), null);
         }
     }
 
