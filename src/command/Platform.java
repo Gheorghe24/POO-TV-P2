@@ -102,7 +102,7 @@ public final class Platform {
                                         .executeStrategy(inputData.getMovies(),
                                                 currentPage.getCurrentUser()
                                                         .getCredentials().getCountry()),
-                                "increasing");
+                                "decreasing");
                 notification = new Notification(recommendationList.get(0).getName(),
                         "Recommendation");
             }

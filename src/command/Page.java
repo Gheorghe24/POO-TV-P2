@@ -323,10 +323,13 @@ public final class Page {
         if (movieService.getMoviesByName(movie.getName(), inputData.getMovies()).isEmpty()) {
             inputData.getMovies().add(movie);
             List<User> users = inputData.getUsers().stream().filter(user ->
-                    user.getSubscribedGenres().stream().anyMatch(movie.getGenres()::contains))
+                            user.getSubscribedGenres().stream()
+                                    .anyMatch(movie.getGenres()::contains))
                     .toList();
+
             List<User> availableUsers = users.stream().filter(user ->
-                    !movie.getCountriesBanned().contains(user.getCredentials().getCountry()))
+                            !movie.getCountriesBanned()
+                                    .contains(user.getCredentials().getCountry()))
                     .toList();
             Notification notification = new Notification(movie.getName(), "ADD");
             availableUsers.forEach(user -> user.getNotifications().add(notification));
@@ -354,6 +357,29 @@ public final class Page {
             // vor fi notificati cei carora nu le este interzis in tara
 //            Notification notification = new Notification(movie.getName(), "ADD");
 //            currentUser.getNotifications().add(notification);
+            List<User> users = inputData.getUsers().stream().filter(user ->
+                            user.getSubscribedGenres().stream()
+                                    .anyMatch(movieToDelete.getGenres()::contains))
+                    .toList();
+            List<User> availableUsers = users.stream().filter(user ->
+                            !movieToDelete.getCountriesBanned()
+                                    .contains(user.getCredentials().getCountry()))
+                    .toList();
+            List<User> premiumUsers =
+                    availableUsers.stream().filter(user ->
+                                    user.getCredentials().getAccountType().equals("premium"))
+                            .toList();
+            List<User> standardUsers =
+                    availableUsers.stream().filter(user ->
+                                    user.getCredentials().getAccountType().equals("standard"))
+                            .toList();
+            premiumUsers.forEach(user ->
+                    user.setNumFreePremiumMovies(user.getNumFreePremiumMovies() + 1));
+            standardUsers.forEach(user ->
+                    user.setTokensCount(user.getTokensCount() + 2));
+            Notification notification = new Notification(movieToDelete.getName(), "DELETE");
+            availableUsers.forEach(user ->
+                    user.getNotifications().add(notification));
         } else {
             outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         }
