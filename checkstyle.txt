@@ -1,4 +1,2 @@
 Starting audit...
-[ERROR] D:\Anul2\POO\ProjectPartTwo\.\src\command\Page.java:80: Line is longer than 100 characters (found 120). [LineLength]
 Audit done.
-Checkstyle ends with 1 errors.

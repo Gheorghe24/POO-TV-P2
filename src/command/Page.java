@@ -77,7 +77,8 @@ public final class Page {
 
             case "see details":
                 if (this.getCurrentUser() != null && this.getName().equals("movies")) {
-                    List<Movie> moviesByName = new MovieService().getMoviesByName(movieNameForDetails, this.moviesList);
+                    List<Movie> moviesByName = new MovieService()
+                            .getMoviesByName(movieNameForDetails, this.moviesList);
                     List<Movie> foundMovie = new ContextForFilter<>(new FilterName())
                             .executeStrategy(moviesByName, movieNameForDetails);
                     if (foundMovie.isEmpty()) {
@@ -130,7 +131,7 @@ public final class Page {
                             Integer.parseInt(this.getCurrentUser().getCredentials().getBalance());
                     var count = Integer.parseInt(action.getCount());
                     if (balance >= count) {
-                        currentUser.setTokensCount(count);
+                        currentUser.setTokensCount(currentUser.getTokensCount() + count);
                         currentUser.getCredentials().setBalance(String.valueOf(balance - count));
                     } else {
                         outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);

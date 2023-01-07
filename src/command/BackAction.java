@@ -28,6 +28,7 @@ public final class BackAction implements ICommand {
                 ? frontPage.getCurrentMovie().getName() : null;
         if (frontPage.getName().equals("register")
                 || frontPage.getName().equals("login")) {
+            currentPage.setName(frontPage.getName());
             new OutputService().addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         } else if (frontPage.getName().equals("homepage")) {
             currentPage.setName("homepage");
