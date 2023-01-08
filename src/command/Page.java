@@ -14,10 +14,10 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import services.DatabaseService;
-import services.MovieService;
-import services.OutputService;
-import services.UserService;
+import service.DatabaseService;
+import service.MovieService;
+import service.OutputService;
+import service.UserService;
 import strategy.filter.ContextForFilter;
 import strategy.filter.FilterCountry;
 import strategy.filter.FilterName;
@@ -173,7 +173,7 @@ public final class Page {
 
             case "watch" -> {
                 if (this.getName().equals("see details")) {
-                    movieService.watchMovie(jsonOutput, action, objectMapper, inputData, this);
+                    movieService.watchMovie(jsonOutput, action, objectMapper, this);
                 } else {
                     outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
                 }
@@ -200,9 +200,6 @@ public final class Page {
                 if (this.getName().equals("see details")
                         && !currentUser.getSubscribedGenres().contains(action.getSubscribedGenre())
                         && currentMovie.getGenres().contains(action.getSubscribedGenre())) {
-                    // mai trebuie sa verific daca nu e abonat deja
-                    // daca currentMovie are genul asta
-                    //
                     currentUser.getSubscribedGenres().add(action.getSubscribedGenre());
                 } else {
                     outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
@@ -311,6 +308,13 @@ public final class Page {
         this.setName("homepage");
     }
 
+    /**
+     * @param pageName to save in stack
+     * @param movies available on page
+     * @param movie current movie
+     * @param user current user
+     * every time this method is executed, the page is pushed to pagesStack
+     */
     private void populateCurrentPage(final String pageName, final List<Movie> movies,
                                      final Movie movie, final User user) {
         this.setName(pageName);
@@ -320,6 +324,17 @@ public final class Page {
         if (pageName.equals("homepage")) {
             Platform.getInstance().getPageStack().clear();
         }
+        pushPageToStack(pageName, movies, movie, user);
+    }
+
+    /**
+     * @param pageName to save in stack
+     * @param movies available on page
+     * @param movie current movie
+     * @param user current user
+     */
+    private static void pushPageToStack(final String pageName, final List<Movie> movies,
+                                        final Movie movie, final User user) {
         Platform.getInstance().getPageStack().push(Page
                 .builder()
                 .name(pageName)

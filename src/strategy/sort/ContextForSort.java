@@ -4,9 +4,9 @@ import io.Movie;
 import java.util.List;
 
 public final class ContextForSort<T> {
-    private final ISortStrategy sortStrategy;
+    private final ISortStrategy<T> sortStrategy;
 
-    public ContextForSort(final ISortStrategy sortStrategy) {
+    public ContextForSort(final ISortStrategy<T> sortStrategy) {
         this.sortStrategy = sortStrategy;
     }
 

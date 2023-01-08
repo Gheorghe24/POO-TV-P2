@@ -1,4 +1,4 @@
-package services;
+package service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -26,30 +26,28 @@ public class DatabaseService {
      * @param movie      to add in Database
      * @param jsonOutput to write POJO
      * @param inputData, actual database
+     * checked if movie is in database
+     * added movie to database
+     * notified users that have subscription on movie genres
      */
     public void addToDatabase(final Movie movie, final ArrayNode jsonOutput,
                               final Input inputData) {
         if (movieService.getMoviesByName(movie.getName(), inputData.getMovies()).isEmpty()) {
             inputData.getMovies().add(movie);
-            List<User> users = new ContextForFilter<>(new FilterGenre())
-                    .executeUsersStrategy(inputData.getUsers(), movie.getGenres());
-
-            List<User> availableUsers = users.stream().filter(user ->
-                            !movie.getCountriesBanned()
-                                    .contains(user.getCredentials().getCountry()))
-                    .toList();
-
-            Notification notification = new Notification(movie.getName(), "ADD");
-            availableUsers.forEach(user -> user.getNotifications().add(notification));
+            sendNotificationsToAvailableUsers(inputData, movie, "ADD");
         } else {
             outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         }
     }
 
     /**
-     * @param movieName  to add in Database
+     * @param movieName  to remove from Database
      * @param jsonOutput to write POJO
      * @param inputData, actual database
+     * checked if movie is in database
+     * removed movie to database
+     * notified users that have subscription on movie genres
+     * returned tokens or freePremiumMovies to standard or premium users
      */
     public void deleteFromDatabase(final String movieName, final ArrayNode jsonOutput,
                                    final Input inputData) {
@@ -60,12 +58,9 @@ public class DatabaseService {
 
         if (movieToDelete != null) {
             inputData.getMovies().remove(movieToDelete);
-            List<User> users = new ContextForFilter<>(new FilterGenre())
-                    .executeUsersStrategy(inputData.getUsers(), movieToDelete.getGenres());
-            List<User> availableUsers = users.stream().filter(user ->
-                            !movieToDelete.getCountriesBanned()
-                                    .contains(user.getCredentials().getCountry()))
-                    .toList();
+            List<User> availableUsers = sendNotificationsToAvailableUsers(inputData, movieToDelete,
+                    "DELETE");
+
             List<User> premiumUsers = new ContextForFilter<>(new FilterAccountType())
                     .executeUsersStrategy(availableUsers, "premium");
             List<User> standardUsers = new ContextForFilter<>(new FilterAccountType())
@@ -75,12 +70,38 @@ public class DatabaseService {
                     user.setNumFreePremiumMovies(user.getNumFreePremiumMovies() + 1));
             standardUsers.forEach(user ->
                     user.setTokensCount(user.getTokensCount() + 2));
-            Notification notification = new Notification(movieToDelete.getName(), "DELETE");
-            availableUsers.forEach(user ->
-                    user.getNotifications().add(notification));
         } else {
             outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
         }
+    }
+
+    /**
+     * @param movieToDelete from which to get CountriesBanned
+     * @param users to filter
+     * @return list of users that can have access to that specific movie
+     */
+    private static List<User> getAvailableUsers(final Movie movieToDelete, final List<User> users) {
+        return users.stream().filter(user ->
+                        !movieToDelete.getCountriesBanned()
+                                .contains(user.getCredentials().getCountry()))
+                .toList();
+    }
+
+    /**
+     * @param inputData actual database
+     * @param movie to add or delete
+     * @param databaseAction "add" or "delete"
+     * @return list of users that have been notified
+     */
+    private List<User> sendNotificationsToAvailableUsers(final Input inputData, final Movie movie,
+                                                         final String databaseAction) {
+        List<User> users = new ContextForFilter<>(new FilterGenre())
+                .executeUsersStrategy(inputData.getUsers(), movie.getGenres());
+
+        List<User> availableUsers = getAvailableUsers(movie, users);
+        Notification notification = new Notification(movie.getName(), databaseAction);
+        availableUsers.forEach(user -> user.getNotifications().add(notification));
+        return availableUsers;
     }
 
 }

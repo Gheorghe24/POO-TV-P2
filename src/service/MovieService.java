@@ -1,4 +1,4 @@
-package services;
+package service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,9 +36,9 @@ public final class MovieService {
     }
 
     /**
-     * @param action
-     * @param movie
-     * @return
+     * @param action from input
+     * @param movie to extract name
+     * @return name of Movie
      */
     public String extractMovieName(final Action action, final Movie movie) {
         if (action.getMovie() != null) {
@@ -49,7 +49,7 @@ public final class MovieService {
     }
 
     /**
-     * @param fieldFilter
+     * @param fieldFilter name of Movie
      * @param testedList list to filter
      * @return final result
      */
@@ -60,9 +60,9 @@ public final class MovieService {
     }
 
     /**
-     * @param containsField
-     * @param moviesList
-     * @return
+     * @param containsField by actors or genres
+     * @param moviesList to filter
+     * @return filtered list
      */
     public List<Movie> filterInputMoviesByContains(final Contains containsField,
                                                    final List<Movie> moviesList) {
@@ -81,8 +81,8 @@ public final class MovieService {
     }
 
     /**
-     * @param sortField
-     * @param moviesList
+     * @param sortField rating and duration
+     * @param moviesList to sort
      * @return sort movies with different strategy
      * in this case with duration and rating I created a Pair object to contain
      * both sort order and duration order
@@ -132,8 +132,9 @@ public final class MovieService {
     /**
      * checked failed cases and wrote added error to JSON
      * checked if the Movie exists in watched movies
+     * we can rateMovie multiple times
      * Calculated average rating and added Movie to Rated
-     * Updated Ratings in every
+     * Updated Ratings movie in every list
      */
     public void rateMovie(final ArrayNode jsonOutput, final Action action,
                           final ObjectMapper objectMapper,
@@ -155,13 +156,13 @@ public final class MovieService {
             int counterOfRatings = movie.getNumRatings();
             movie.setRating((movie.getRating() * counterOfRatings + action.getRate())
                     / (counterOfRatings + 1));
+
             if (getMoviesByName(movie.getName(),
                     currentPage.getCurrentUser().getRatedMovies()).isEmpty()) {
                 movie.setNumRatings(movie.getNumRatings() + 1);
                 currentPage.getCurrentUser().getRatedMovies().add(movie);
             }
             updateMovieInAllObjects(movie, input);
-
 
             outputService.addPOJOWithPopulatedOutput(jsonOutput, currentPage,
                     objectMapper, new ArrayList<>(Collections.singleton(
@@ -174,6 +175,7 @@ public final class MovieService {
     /**
      * get available movies to purchase
      * checked if current user has right to purchase movie
+     * we cannot purchase movie multiple times
      * here we have 2 posibilities to purchase movie
      * user with premium account has advantages
      * if user respects the rules, we add the Movie to purchased list
@@ -220,11 +222,12 @@ public final class MovieService {
 
     /**
      * we cannot watch a movie if we dind't buy it
+     * we can watch a movie multiple times
      * if user respects the rules, we add the Movie to watched list
      */
     public void watchMovie(final ArrayNode jsonOutput, final Action action,
                             final ObjectMapper objectMapper,
-                           final Input inputData, final Page currentPage) {
+                           final Page currentPage) {
         if (currentPage.getCurrentUser().getPurchasedMovies().isEmpty()) {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
         } else {

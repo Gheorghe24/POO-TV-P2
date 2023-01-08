@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.Input;
 import lombok.AllArgsConstructor;
-import services.OutputService;
+import service.OutputService;
 
 @AllArgsConstructor
 public final class BackAction implements ICommand {

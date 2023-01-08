@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.Action;
 import io.Input;
 import lombok.AllArgsConstructor;
-import services.DatabaseService;
+import service.DatabaseService;
 
 @AllArgsConstructor
 public final class DatabaseAction implements ICommand {
