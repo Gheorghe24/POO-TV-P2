@@ -1,18 +1,25 @@
 package service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import command.Page;
 import io.Credentials;
 import io.Input;
 import io.User;
-import lombok.NoArgsConstructor;
 
 /**
  * Service that resolves login, register, verifications of user in "database"
  */
-@NoArgsConstructor
 public final class UserService {
 
+    private final OutputService outputService;
+
+    public UserService() {
+        outputService = new OutputService();
+    }
+
     /**
-     * @param inputData from Test
+     * @param inputData   from Test
      * @param credentials for register action
      * @return valid user or null
      */
@@ -24,12 +31,12 @@ public final class UserService {
                         user1 -> user1
                                 .getCredentials()
                                 .equals(credentials))
-                                .findAny()
-                                .orElse(null);
+                .findAny()
+                .orElse(null);
     }
 
     /**
-     * @param inputData from Test
+     * @param inputData   from Test
      * @param credentials for register action
      * @return registered user or null
      */
@@ -43,6 +50,58 @@ public final class UserService {
             return user;
         }
         return null;
+    }
+
+    /**
+     * @param jsonOutput   Output to add Json Objects
+     * @param credentials  from Input
+     * @param inputData    Database/Input class from Test File
+     * @param objectMapper for json
+     */
+    public void loginOnPage(final ArrayNode jsonOutput, final Input inputData,
+                            final Credentials credentials,
+                            final ObjectMapper objectMapper,
+                            final Page page) {
+        if (page.getCurrentUser() == null && page.getName().equals("login")) {
+            User userFound = checkForUserInData(inputData, credentials);
+
+            if (userFound != null) {
+                page.setCurrentUser(userFound);
+                outputService.addPOJOWithPopulatedOutput(jsonOutput, page, objectMapper,
+                        page.getMoviesList());
+            } else {
+                outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+            }
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+        }
+        page.setName("homepage");
+    }
+
+    /**
+     * @param jsonOutput   Output to add Json Objects
+     * @param credentials  from Input
+     * @param inputData    Database/Input class from Test File
+     * @param objectMapper for json
+     */
+    public void registerOnPage(final ArrayNode jsonOutput, final Input inputData,
+                               final Credentials credentials,
+                               final ObjectMapper objectMapper, final Page page) {
+        if (page.getCurrentUser() == null && page.getName().equals(
+                "register")) {
+            var registeredNewUser = registerNewUser(inputData, credentials);
+            if (registeredNewUser != null) {
+                page.setCurrentUser(registeredNewUser);
+                outputService.addPOJOWithPopulatedOutput(jsonOutput, page, objectMapper,
+                        page.getMoviesList());
+            } else {
+                outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+                page.setName("homepage");
+            }
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+            page.setName("homepage");
+        }
     }
 
 }

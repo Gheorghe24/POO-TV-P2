@@ -7,24 +7,22 @@ import command.Page;
 import io.Movie;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.NoArgsConstructor;
 import out.Output;
 
 /**
  * Service that writes resolves requests from portal to Output
  */
-@NoArgsConstructor
-public class OutputService {
+public final class OutputService {
     /**
-     * @param jsonOutput jsonObject to write
-     * @param currentPage to extract data
+     * @param jsonOutput   jsonObject to write
+     * @param currentPage  to extract data
      * @param objectMapper for writing to JsonObject
-     * @param movies to add
+     * @param movies       to add
      */
     public void addPOJOWithPopulatedOutput(final ArrayNode jsonOutput,
-                                            final Page currentPage,
-                                            final ObjectMapper objectMapper,
-                                            final List<Movie> movies) {
+                                           final Page currentPage,
+                                           final ObjectMapper objectMapper,
+                                           final List<Movie> movies) {
         ObjectNode node = objectMapper.valueToTree(Output
                 .builder()
                 .currentMoviesList(movies)
@@ -34,11 +32,11 @@ public class OutputService {
     }
 
     /**
-     * @param jsonOutput jsonObject to write
+     * @param jsonOutput   jsonObject to write
      * @param objectMapper for writing to JsonObject
      */
     public void addErrorPOJOToArrayNode(final ArrayNode jsonOutput,
-                                         final ObjectMapper objectMapper) {
+                                        final ObjectMapper objectMapper) {
         ObjectNode node = objectMapper.valueToTree(Output
                 .builder()
                 .error("Error")
