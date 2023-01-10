@@ -14,6 +14,7 @@ import java.util.List;
 import lombok.Setter;
 import strategy.filter.ContextForFilter;
 import strategy.filter.FilterActor;
+import strategy.filter.FilterCountry;
 import strategy.filter.FilterGenre;
 import strategy.filter.FilterName;
 import strategy.sort.ContextForSort;
@@ -29,9 +30,11 @@ import utils.Utils;
 @Setter
 public final class MovieService {
 
-    private OutputService outputService;
+    private final OutputService outputService;
+    private final ObjectMapper objectMapper;
 
     public MovieService() {
+        objectMapper = new ObjectMapper();
         outputService = new OutputService();
     }
 
@@ -137,7 +140,6 @@ public final class MovieService {
      * Updated Ratings movie in every list
      */
     public void rateMovie(final ArrayNode jsonOutput, final Action action,
-                          final ObjectMapper objectMapper,
                           final Input input,
                           final Page currentPage) {
         if (currentPage.getCurrentUser().getWatchedMovies().isEmpty()
@@ -181,7 +183,7 @@ public final class MovieService {
      * if user respects the rules, we add the Movie to purchased list
      */
     public void purchaseMovie(final ArrayNode jsonOutput, final Action action,
-                              final ObjectMapper objectMapper, final Page currentPage) {
+                              final Page currentPage) {
         List<Movie> availableMovies;
         if (action.getMovie() != null) {
             availableMovies = getMoviesByName(action.getMovie(), currentPage.getMoviesList());
@@ -226,7 +228,6 @@ public final class MovieService {
      * if user respects the rules, we add the Movie to watched list
      */
     public void watchMovie(final ArrayNode jsonOutput, final Action action,
-                            final ObjectMapper objectMapper,
                            final Page currentPage) {
         if (currentPage.getCurrentUser().getPurchasedMovies().isEmpty()) {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
@@ -261,7 +262,7 @@ public final class MovieService {
      * if user respects the rules, we add the Movie to liked list
      */
     public void likeMovie(final ArrayNode jsonOutput, final Action action,
-                           final ObjectMapper objectMapper, final Input inputData,
+                          final Input inputData,
                           final Page currentPage) {
         if (currentPage.getCurrentUser().getWatchedMovies().isEmpty()) {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
@@ -281,6 +282,51 @@ public final class MovieService {
             outputService.addPOJOWithPopulatedOutput(jsonOutput, currentPage,
                     objectMapper, new ArrayList<>(Collections.singleton(
                             new Movie(movie))));
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+        }
+    }
+
+    /**
+     * @param jsonOutput   Output to add Json Objects
+     * @param action       from Input
+     * @param inputData    Database/Input class from Test File
+     */
+    public void filterOnPage(final ArrayNode jsonOutput, final Action action,
+                              final Input inputData,
+                              final Page page) {
+        if (page.getName().equals("movies")) {
+            page.setMoviesList(new ContextForFilter<>(new FilterCountry())
+                    .executeMoviesStrategy(inputData.getMovies(),
+                            page.getCurrentUser().getCredentials().getCountry()));
+            Sort sortField = action.getFilters().getSort();
+            page.setMoviesList(sortInputMovies(sortField, page.getMoviesList()));
+            Contains containsField = action.getFilters().getContains();
+            page.setMoviesList(filterInputMoviesByContains(containsField,
+                    page.getMoviesList()));
+            outputService.addPOJOWithPopulatedOutput(jsonOutput, page, objectMapper,
+                    page.getMoviesList());
+        } else {
+            outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
+        }
+    }
+
+    /**
+     * @param jsonOutput   Output to add Json Objects
+     * @param action       from Input
+     * @param inputData    Database/Input class from Test File
+     */
+    public void searchOnPage(final ArrayNode jsonOutput, final Action action,
+                              final Input inputData, final Page page) {
+        if (page.getName().equals("movies")) {
+            page.setMoviesList(new ContextForFilter<>(new FilterCountry())
+                    .executeMoviesStrategy(inputData.getMovies(),
+                            page.getCurrentUser().getCredentials().getCountry()));
+            page.setMoviesList(new ContextForFilter<>(new FilterName())
+                    .executeMoviesStrategy(page.getMoviesList(),
+                            action.getStartsWith()));
+            outputService.addPOJOWithPopulatedOutput(jsonOutput, page, objectMapper,
+                    page.getMoviesList());
         } else {
             outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
         }
