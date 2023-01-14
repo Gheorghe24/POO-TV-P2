@@ -1,7 +1,9 @@
-package command;
+package command.change_page;
 
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import command.ICommand;
+import command.Page;
 import io.Action;
 import io.Input;
 import lombok.AllArgsConstructor;
@@ -12,8 +14,11 @@ public final class ChangePage implements ICommand {
     private ArrayNode jsonOutput;
     private Action action;
     private Input inputData;
+
     @Override
     public void executeCommand() {
         currentPage.changePage(jsonOutput, action.getPage(), inputData, action.getMovie());
     }
+
+
 }

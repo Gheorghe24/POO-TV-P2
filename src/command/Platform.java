@@ -2,6 +2,7 @@ package command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import command.change_page.ChangePage;
 import io.Credentials;
 import io.Input;
 import io.Movie;

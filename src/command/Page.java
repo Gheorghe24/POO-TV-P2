@@ -2,6 +2,13 @@ package command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import command.change_page.LoginHandler;
+import command.change_page.LogoutHandler;
+import command.change_page.MoviesHandler;
+import command.change_page.PageHandler;
+import command.change_page.RegisterHandler;
+import command.change_page.SeeDetailsHandler;
+import command.change_page.UpgradesHandler;
 import io.Action;
 import io.Credentials;
 import io.Input;
@@ -17,9 +24,6 @@ import service.MovieService;
 import service.OutputService;
 import service.UpgradeService;
 import service.UserService;
-import strategy.filter.ContextForFilter;
-import strategy.filter.FilterCountry;
-import strategy.filter.FilterName;
 
 @Getter
 @Setter
@@ -61,72 +65,24 @@ public final class Page {
     /**
      * @param jsonOutput Output to add Json Objects
      */
-    public void changePage(final ArrayNode jsonOutput, final String pageName, final Input input,
-                           final String movieNameForDetails) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        switch (pageName) {
-            case "register":
-            case "login":
-                if (this.getCurrentUser() == null && this.getName().equals("homepage")) {
-                    populateCurrentPage(pageName, new ArrayList<>(), null, null);
-                } else {
-                    this.setName("homepage");
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-                break;
+    public void changePage(final ArrayNode jsonOutput, final String pageName,
+                           final Input input, final String movieNameForDetails) {
+        PageHandler registerHandler = new RegisterHandler(this);
+        PageHandler loginHandler = new LoginHandler(this);
+        PageHandler logoutHandler = new LogoutHandler(this);
+        PageHandler moviesHandler = new MoviesHandler(this);
+        PageHandler seeDetailsHandler = new SeeDetailsHandler(this);
+        PageHandler upgradesHandler = new UpgradesHandler(this);
 
-            case "logout":
-                if (this.getCurrentUser() != null) {
-                    populateCurrentPage("homepage", new ArrayList<>(), null, null);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-                break;
+        // Link the handlers together
+        registerHandler.setNextHandler(loginHandler);
+        loginHandler.setNextHandler(logoutHandler);
+        logoutHandler.setNextHandler(moviesHandler);
+        moviesHandler.setNextHandler(seeDetailsHandler);
+        seeDetailsHandler.setNextHandler(upgradesHandler);
 
-            case "movies":
-                if (this.getCurrentUser() != null) {
-                    populateCurrentPage(pageName,
-                            new ContextForFilter<>(new FilterCountry())
-                                    .executeMoviesStrategy(input.getMovies(),
-                                            currentUser.getCredentials().getCountry()),
-                            null,
-                            currentUser);
-                    outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
-                            this.moviesList);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-                break;
-
-            case "see details":
-                if (this.getCurrentUser() != null && this.getName().equals("movies")) {
-                    List<Movie> moviesByName = new MovieService()
-                            .getMoviesByName(movieNameForDetails, this.moviesList);
-                    List<Movie> foundMovie = new ContextForFilter<>(new FilterName())
-                            .executeMoviesStrategy(moviesByName, movieNameForDetails);
-                    if (foundMovie.isEmpty()) {
-                        outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                    } else {
-                        populateCurrentPage(pageName, foundMovie, foundMovie.get(0), currentUser);
-                        outputService.addPOJOWithPopulatedOutput(jsonOutput, this, objectMapper,
-                                this.moviesList);
-                    }
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-                break;
-
-            case "upgrades":
-                if (this.getCurrentUser() != null) {
-                    populateCurrentPage(pageName, new ArrayList<>(), null, currentUser);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-                break;
-
-            default:
-        }
-
+        // Start handling the page from the first handler
+        registerHandler.handlePage(jsonOutput, pageName, input, movieNameForDetails);
     }
 
     /**
@@ -210,8 +166,8 @@ public final class Page {
      * @param user     current user
      *                 every time this method is executed, the page is pushed to pagesStack
      */
-    private void populateCurrentPage(final String pageName, final List<Movie> movies,
-                                     final Movie movie, final User user) {
+    public void populateCurrentPage(final String pageName, final List<Movie> movies,
+                             final Movie movie, final User user) {
         this.setName(pageName);
         this.setMoviesList(movies);
         this.setCurrentMovie(movie);
