@@ -120,7 +120,8 @@ public final class Platform {
         currentPage = Page.builder()
                 .name("homepage")
                 .build();
-        Platform.getInstance().getPageStack().push(Page.builder()
+        Platform.getInstance().getPageStack()
+                .push(Page.builder()
                 .name("homepage")
                 .build());
     }

@@ -29,6 +29,7 @@ public final class Main {
         platform.setOutput(arrayNode);
         platform.setCommandList(new ArrayList<>());
         platform.setPageStack(new Stack<>());
+
         platform.prepareForNewEntry();
         platform.executeListOfActions();
         objectWriter.writeValue(new File(args[1]), arrayNode);

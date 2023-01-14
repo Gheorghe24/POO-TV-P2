@@ -23,12 +23,24 @@ public class DatabaseService {
     }
 
     /**
+     * @param movieToDelete from which to get CountriesBanned
+     * @param users         to filter
+     * @return list of users that can have access to that specific movie
+     */
+    private static List<User> getAvailableUsers(final Movie movieToDelete, final List<User> users) {
+        return users.stream().filter(user ->
+                        !movieToDelete.getCountriesBanned()
+                                .contains(user.getCredentials().getCountry()))
+                .toList();
+    }
+
+    /**
      * @param movie      to add in Database
      * @param jsonOutput to write POJO
      * @param inputData, actual database
-     * checked if movie is in database
-     * added movie to database
-     * notified users that have subscription on movie genres
+     *                   checked if movie is in database
+     *                   added movie to database
+     *                   notified users that have subscription on movie genres
      */
     public void addToDatabase(final Movie movie, final ArrayNode jsonOutput,
                               final Input inputData) {
@@ -44,10 +56,10 @@ public class DatabaseService {
      * @param movieName  to remove from Database
      * @param jsonOutput to write POJO
      * @param inputData, actual database
-     * checked if movie is in database
-     * removed movie to database
-     * notified users that have subscription on movie genres
-     * returned tokens or freePremiumMovies to standard or premium users
+     *                   checked if movie is in database
+     *                   removed movie to database
+     *                   notified users that have subscription on movie genres
+     *                   returned tokens or freePremiumMovies to standard or premium users
      */
     public void deleteFromDatabase(final String movieName, final ArrayNode jsonOutput,
                                    final Input inputData) {
@@ -76,20 +88,8 @@ public class DatabaseService {
     }
 
     /**
-     * @param movieToDelete from which to get CountriesBanned
-     * @param users to filter
-     * @return list of users that can have access to that specific movie
-     */
-    private static List<User> getAvailableUsers(final Movie movieToDelete, final List<User> users) {
-        return users.stream().filter(user ->
-                        !movieToDelete.getCountriesBanned()
-                                .contains(user.getCredentials().getCountry()))
-                .toList();
-    }
-
-    /**
-     * @param inputData actual database
-     * @param movie to add or delete
+     * @param inputData      actual database
+     * @param movie          to add or delete
      * @param databaseAction "add" or "delete"
      * @return list of users that have been notified
      */

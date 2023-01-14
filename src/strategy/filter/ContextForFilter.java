@@ -20,9 +20,9 @@ public final class ContextForFilter<T> {
     }
 
     /**
-     * @param users
-     * @param fields
-     * @return
+     * @param users from request
+     * @param fields for filtering list of users
+     * @return filtered list
      */
     public List<User> executeUsersStrategy(final List<User> users, final T fields) {
         return filterStrategy.filterUsers(users, fields);
