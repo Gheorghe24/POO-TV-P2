@@ -1,6 +1,8 @@
-package command;
+package command.on_page;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import command.ICommand;
+import command.Page;
 import io.Action;
 import io.Credentials;
 import io.Input;
@@ -20,7 +22,7 @@ public final class OnPage implements ICommand {
 
     @Override
     public void executeCommand() {
-        currentPage.onPage(jsonOutput, action,
+        currentPage.onPageV2(jsonOutput, action,
                 inputData, credentials);
     }
 }

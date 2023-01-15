@@ -1,6 +1,5 @@
 package command;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import command.change_page.LoginHandler;
 import command.change_page.LogoutHandler;
@@ -9,6 +8,18 @@ import command.change_page.PageHandler;
 import command.change_page.RegisterHandler;
 import command.change_page.SeeDetailsHandler;
 import command.change_page.UpgradesHandler;
+import command.on_page.BuyPremiumAccountHandler;
+import command.on_page.BuyTokensOnPageHandler;
+import command.on_page.FilterOnPageHandler;
+import command.on_page.LikeHandler;
+import command.on_page.LoginOnPageHandler;
+import command.on_page.PurchaseHandler;
+import command.on_page.RateHandler;
+import command.on_page.RegisterOnPageHandler;
+import command.on_page.RequestHandler;
+import command.on_page.SearchOnPageHandler;
+import command.on_page.SubscribeHandler;
+import command.on_page.WatchHandler;
 import io.Action;
 import io.Credentials;
 import io.Input;
@@ -64,6 +75,9 @@ public final class Page {
 
     /**
      * @param jsonOutput Output to add Json Objects
+     *                   Registered each type of request from user
+     *                   Linked the handlers together
+     *                   Start handling the page from the first handler
      */
     public void changePage(final ArrayNode jsonOutput, final String pageName,
                            final Input input, final String movieNameForDetails) {
@@ -74,89 +88,53 @@ public final class Page {
         PageHandler seeDetailsHandler = new SeeDetailsHandler(this);
         PageHandler upgradesHandler = new UpgradesHandler(this);
 
-        // Link the handlers together
         registerHandler.setNextHandler(loginHandler);
         loginHandler.setNextHandler(logoutHandler);
         logoutHandler.setNextHandler(moviesHandler);
         moviesHandler.setNextHandler(seeDetailsHandler);
         seeDetailsHandler.setNextHandler(upgradesHandler);
 
-        // Start handling the page from the first handler
         registerHandler.handlePage(jsonOutput, pageName, input, movieNameForDetails);
     }
 
     /**
-     * @param jsonOutput  Output to add Json Objects
-     * @param action      from Input
-     * @param inputData   Database/Input class from Test File
-     * @param credentials from Input for register operation
+     * @param jsonOutput to add POJO
+     * @param action from user to handle
+     * @param inputData database
+     * @param credentials of user
+     *                    Registered each type of request from user
+     *                    Linked the handlers together
+     *                    Start handling the page from the first handler
+     *
      */
-    public void onPage(final ArrayNode jsonOutput, final Action action,
-                       final Input inputData, final Credentials credentials) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String feature = action.getFeature();
-        switch (feature) {
-            case "login" -> userService.loginOnPage(jsonOutput, inputData, credentials,
-                    objectMapper, this);
+    public void onPageV2(final ArrayNode jsonOutput, final Action action,
+                         final Input inputData, final Credentials credentials) {
 
-            case "register" -> userService.registerOnPage(jsonOutput, inputData, credentials,
-                    objectMapper, this);
+        RequestHandler register = new RegisterOnPageHandler(this);
+        RequestHandler login = new LoginOnPageHandler(this);
+        RequestHandler search = new SearchOnPageHandler(this);
+        RequestHandler filter = new FilterOnPageHandler(this);
+        RequestHandler buyTokens = new BuyTokensOnPageHandler(this);
+        RequestHandler buyPremium = new BuyPremiumAccountHandler(this);
+        RequestHandler purchase = new PurchaseHandler(this);
+        RequestHandler watch = new WatchHandler(this);
+        RequestHandler like = new LikeHandler(this);
+        RequestHandler rate = new RateHandler(this);
+        RequestHandler subscribe = new SubscribeHandler(this);
 
-            case "search" -> movieService.searchOnPage(jsonOutput, action, inputData, this);
+        register.setNext(login);
+        login.setNext(search);
+        search.setNext(filter);
+        filter.setNext(buyTokens);
+        buyTokens.setNext(buyPremium);
+        buyPremium.setNext(purchase);
+        purchase.setNext(watch);
+        watch.setNext(like);
+        like.setNext(rate);
+        rate.setNext(subscribe);
 
-            case "filter" -> movieService.filterOnPage(jsonOutput, action, inputData, this);
+        register.handleRequest(jsonOutput, action, inputData, credentials);
 
-            case "buy tokens" -> upgradeService.buyTokensOnPage(jsonOutput, action,
-                    this);
-
-            case "buy premium account" -> upgradeService.buyPremiumAccountOnPage(jsonOutput, this);
-
-            case "purchase" -> {
-                if (this.getName().equals("upgrades") || this.getName().equals("see details")) {
-                    movieService.purchaseMovie(jsonOutput, action, this);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-            }
-
-            case "watch" -> {
-                if (this.getName().equals("see details")) {
-                    movieService.watchMovie(jsonOutput, action, this);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-            }
-
-            case "like" -> {
-                if (this.getName().equals("see details")) {
-                    movieService.likeMovie(jsonOutput, action, inputData, this);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-            }
-
-            case "rate" -> {
-                if (this.getName().equals("see details")) {
-                    movieService.rateMovie(jsonOutput, action,
-                            inputData, this);
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, objectMapper);
-                }
-            }
-
-            case "subscribe" -> {
-                if (this.getName().equals("see details")
-                        && !currentUser.getSubscribedGenres().contains(action.getSubscribedGenre())
-                        && currentMovie.getGenres().contains(action.getSubscribedGenre())) {
-                    currentUser.getSubscribedGenres().add(action.getSubscribedGenre());
-                } else {
-                    outputService.addErrorPOJOToArrayNode(jsonOutput, new ObjectMapper());
-                }
-            }
-
-            default -> {
-            }
-        }
     }
 
     /**
@@ -167,7 +145,7 @@ public final class Page {
      *                 every time this method is executed, the page is pushed to pagesStack
      */
     public void populateCurrentPage(final String pageName, final List<Movie> movies,
-                             final Movie movie, final User user) {
+                                    final Movie movie, final User user) {
         this.setName(pageName);
         this.setMoviesList(movies);
         this.setCurrentMovie(movie);

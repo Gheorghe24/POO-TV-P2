@@ -3,6 +3,7 @@ package command;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import command.change_page.ChangePage;
+import command.on_page.OnPage;
 import io.Credentials;
 import io.Input;
 import io.Movie;
@@ -100,8 +101,8 @@ public final class Platform {
                                                         .getCredentials().getCountry()),
                                 "decreasing");
                 recommendationList =
-                        recommendationList.stream().filter(movie -> new MovieService().
-                                        getMoviesByName(movie.getName(),
+                        recommendationList.stream().filter(movie -> new MovieService()
+                                        .getMoviesByName(movie.getName(),
                                                 currentPage.getCurrentUser().getWatchedMovies())
                                         .isEmpty())
                                 .toList();
@@ -123,7 +124,7 @@ public final class Platform {
                 .build();
         Platform.getInstance().getPageStack()
                 .push(Page.builder()
-                .name("homepage")
-                .build());
+                        .name("homepage")
+                        .build());
     }
 }
